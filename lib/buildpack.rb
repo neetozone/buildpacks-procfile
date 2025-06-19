@@ -5,8 +5,9 @@ require_relative 'procfile'
 class ProcfileBuildpack
   def detect(app_dir)
     has_procfile = File.exist?(File.join(app_dir, 'Procfile'))
+    has_env_processes = !ENV['NEETO_DEPLOY_PROCESS_TYPE'].to_s.empty?
     
-    if has_procfile
+    if has_procfile || has_env_processes
       # Write build plan according to CNB spec
       plan = {
         "provides" => [{ "name" => "procfile" }],
@@ -23,13 +24,29 @@ class ProcfileBuildpack
   def build(layers_dir, platform_dir, app_dir)
     puts "-----> Discovering process types"
 
-    procfile_path = File.join(app_dir, 'Procfile')
-    begin
-      procfile_content = File.read(procfile_path)
-      procfile = Procfile.parse(procfile_content)
+    procfile = if File.exist?(File.join(app_dir, 'Procfile'))
+      procfile_path = File.join(app_dir, 'Procfile')
+      puts "       Found Procfile in application root"
+      Procfile.parse(File.read(procfile_path))
+    elsif ENV['NEETO_DEPLOY_PROCESS_TYPE']
+      puts "       Using process types from NEETO_DEPLOY_PROCESS_TYPE"
+      begin
+        processes = JSON.parse(ENV['NEETO_DEPLOY_PROCESS_TYPE'])
+        procfile = Procfile.new
+        processes.each do |type, command|
+          procfile.insert(type, command)
+        end
+        procfile
+      rescue JSON::ParserError => e
+        puts "       Warning: Failed to parse NEETO_DEPLOY_PROCESS_TYPE: #{e.message}"
+        Procfile.new
+      end
+    else
+      Procfile.new
+    end
 
-      process_names = procfile.empty? ? '(none)' : procfile.processes.keys.join(', ')
-      puts "       Procfile declares types -> #{process_names}"
+    process_names = procfile.empty? ? '(none)' : procfile.processes.keys.join(', ')
+    puts "       Process types -> #{process_names}"
 
       # Create a layer for process types
       process_layer_dir = File.join(layers_dir, 'processes')

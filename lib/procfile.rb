@@ -12,7 +12,10 @@ class Procfile
   end
 
   def insert(key, value)
-    @processes[key.to_s] = value.to_s
+    # Ensure keys are strings and whitespace is properly handled
+    key = key.to_s.strip
+    value = value.to_s.strip
+    @processes[key] = value unless key.empty? || value.empty?
   end
 
   def self.parse(content)
