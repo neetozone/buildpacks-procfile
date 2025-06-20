@@ -8,8 +8,6 @@ homepage = "https://github.com/bigbinary/buildpacks-procfile"
 description = "A Cloud Native Buildpack that processes Procfile declarations"
 keywords = ["procfile", "processes"]
 clear-env = false
-# This ensures the procfile buildpack runs after language buildpacks
-order-group = 100
 
 [[buildpack.licenses]]
 type = "BSD-3-Clause"

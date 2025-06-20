@@ -1,25 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# CNB Required Environment Variables
-: "${CNB_PLATFORM_API:?}"
-: "${CNB_BP_DIR:?}"
-: "${CNB_LAYERS_DIR:?}"
-: "${CNB_PLATFORM_DIR:?}"
+LAYERS_DIR="$1"
+PLATFORM_DIR="$2"
+APP_DIR="$3"
 
-# Source directory of this script
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LAUNCH_TOML="$LAYERS_DIR/launch.toml"
 
-# Install dependencies if needed
-"$DIR/install-deps"
+process_entries=()
 
-# Execute the Ruby buildpack script
-cd "$CNB_BP_DIR"
-exec ruby bin/buildpack build "$@"
-if [ ! -f "Gemfile.lock" ]; then
-    gem install bundler
-    bundle install
+if [ -n "${NEETO_DEPLOY_PROCESS_TYPE:-}" ]; then
+    echo "Reading processes from NEETO_DEPLOY_PROCESS_TYPE..."
+
+    if command -v jq >/dev/null 2>&1; then
+        mapfile -t types < <(echo "$NEETO_DEPLOY_PROCESS_TYPE" | jq -r 'keys[]')
+        for type in "${types[@]}"; do
+            command=$(echo "$NEETO_DEPLOY_PROCESS_TYPE" | jq -r --arg t "$type" '.[$t]')
+            echo "- Process: $type => $command"
+            process_entries+=("[[processes]]
+type = \"$type\"
+command = [\"bash\", \"-c\"]
+args = [\"$command\"]
+default = $([[ \"$type\" == \"web\" ]] && echo true || echo false)
+working-dir = \"/workspace\"")
+        done
+    else
+        echo "Warning: jq not found, falling back to basic parsing"
+        echo "$NEETO_DEPLOY_PROCESS_TYPE" | tr -d '{}' | tr ',' '\n' | while IFS=: read -r type command; do
+            type=$(echo "$type" | tr -d '" ')
+            command=$(echo "$command" | sed 's/^ *//;s/\"$//;s/^\"//')
+            [ -z "$type" ] && continue
+            echo "- Process: $type => $command"
+            process_entries+=("[[processes]]
+type = \"$type\"
+command = [\"bash\", \"-c\"]
+args = [\"$command\"]
+default = $([[ \"$type\" == \"web\" ]] && echo true || echo false)
+working-dir = \"/workspace\"")
+        done
+    fi
+
+    {
+        for entry in "${process_entries[@]}"; do
+            echo "$entry"
+        done
+    } >"$LAUNCH_TOML"
+
+    echo "Processes written to $LAUNCH_TOML."
+    exit 0
+else
+    echo "NEETO_DEPLOY_PROCESS_TYPE not set. Skipping process registration."
+    exit 100
 fi
-
-# Execute the Ruby buildpack script
-exec ruby $(dirname $0)/buildpack "$@"
