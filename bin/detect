@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BUILD_PLAN_PATH="${CNB_BUILD_PLAN_PATH:-/tmp/buildplan.toml}"
+
+if [ -n "${NEETO_DEPLOY_PROCESS_TYPE:-}" ]; then
+    echo "Detected NEETO_DEPLOY_PROCESS_TYPE environment variable."
+    echo "Value: $NEETO_DEPLOY_PROCESS_TYPE"
+    cat >"$BUILD_PLAN_PATH" <<EOF
+[[provides]]
+name = "procfile"
+
+[[requires]]
+name = "procfile"
+EOF
+    exit 0
+else
+    exit 100
+fi
