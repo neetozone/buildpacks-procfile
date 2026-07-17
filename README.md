@@ -1,14 +1,12 @@
 # Heroku Cloud Native Buildpack: Procfile
 
-[![Cloud Native Buildpacks Registry:
-heroku/procfile][registry-badge]][registry-url] [![CI on Github Actions:
-heroku/procfile][ci-badge]][ci-url]
+[![Cloud Native Buildpacks Registry: heroku/procfile][registry-badge]][registry-url]
+[![CI on Github Actions: heroku/procfile][ci-badge]][ci-url]
 
 
-`heroku/procfile` is the [Heroku Cloud Native Buildpack][heroku-buildpacks] for
-applications that use a Procfile to declare process types. It replicates the
-behavior of [`Procfile`](https://devcenter.heroku.com/articles/procfile) from
-builds on the Heroku Platform.
+`heroku/procfile` is the [Heroku Cloud Native Buildpack][heroku-buildpacks]
+for applications that use a Procfile to declare process types. It replicates the behavior of [`Procfile`](https://devcenter.heroku.com/articles/procfile)
+from builds on the Heroku Platform.
 
 > [!IMPORTANT]
 > This is a [Cloud Native Buildpack][cnb], and is a component of the [Heroku Cloud Native Buildpacks][heroku-buildpacks] project, which is in preview.
@@ -32,15 +30,12 @@ docker run --rm -it -e "PORT=8080" -p 8080:8080 sample-app
 
 ## Application Requirements
 
-This buildpack requires a properly formatted
-[`Procfile`](https://devcenter.heroku.com/articles/procfile) to exist in the
-root project directory.
+This buildpack requires a properly formatted [`Procfile`](https://devcenter.heroku.com/articles/procfile)
+to exist in the root project directory.
 
 ## Configuration
 
-You may configure which process types and commands are included in a build
-result [like
-this](https://devcenter.heroku.com/articles/procfile#procfile-format):
+You may configure which process types and commands are included in a build result [like this](https://devcenter.heroku.com/articles/procfile#procfile-format):
 
 ```yaml
 # Example Procfile
@@ -50,8 +45,7 @@ worker: bundle exec rake jobs:work
 
 ## Contributing
 
-Issues and pull requests are welcome. See our [contributing
-guidelines](./CONTRIBUTING.md) if you would like to help.
+Issues and pull requests are welcome. See our [contributing guidelines](./CONTRIBUTING.md) if you would like to help.
 
 
 [ci-badge]: https://github.com/heroku/buildpacks-procfile/actions/workflows/ci.yml/badge.svg
@@ -64,8 +58,8 @@ guidelines](./CONTRIBUTING.md) if you would like to help.
 
 ## Building and publishing
 
-This repository includes a separate guide with exact commands to package the
-buildpack and publish it to Amazon ECR: see `BUILD_AND_PUBLISH.md`.
+This repository includes a separate guide with exact commands to package the buildpack
+and publish it to Amazon ECR: see `BUILD_AND_PUBLISH.md`.
 
 Quick example (already done for you in CI/local):
 
